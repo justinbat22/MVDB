@@ -7,6 +7,8 @@ import {
   LOGIN_URL,
   SESSION_ID_URL
 } from './config';
+import { db } from './firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const defaultConfig = {
   method: 'POST',
@@ -21,6 +23,26 @@ const apiSettings = {
       ? `${SEARCH_BASE_URL}${searchTerm}&page=${page}`
       : `${POPULAR_BASE_URL}&page=${page}`;
     return await (await fetch(endpoint)).json();
+  },
+  // Writes a movie into the shared Firestore "movies" collection.
+  // Every device with the site open is watching this collection live,
+  // so this is what makes the list sync across devices.
+  addSharedMovie: async movie => {
+    const title = movie.title || movie.original_title || '';
+    const ref = doc(db, 'movies', String(movie.id));
+    await setDoc(
+      ref,
+      {
+        id: movie.id,
+        title,
+        title_lower: title.toLowerCase(),
+        overview: movie.overview || '',
+        poster_path: movie.poster_path || null,
+        backdrop_path: movie.backdrop_path || null,
+        addedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
   },
   fetchMovie: async movieId => {
     const endpoint = `${API_URL}movie/${movieId}?api_key=${API_KEY}`;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 //Config
@@ -10,29 +9,37 @@ import Thumb from './Thumb';
 import Spinner from './Spinner';
 import SearchBar from './SearchBar';
 import Button from './Button';
+import AddMovieForm from './AddMovieForm';
 //Hook
 import { useHomeFetch } from '../hooks/useHomeFetch';
 //Image
-
 import NoImage from '../images/no_image.jpg';
 
 const Home = () => {
-  const { state, loading, error, setSearchTerm ,searchTerm ,setIsLoadingMore } = useHomeFetch();
-  console.log(state);
+  const {
+    state,
+    loading,
+    error,
+    searchTerm,
+    setSearchTerm,
+    loadMore,
+    addMovie
+  } = useHomeFetch();
 
   if (error) return <div>Something went wrong ...</div>
 
   return (
     <>
-      {state.results[0] ? (
-        <HeroImage 
+      {state.results[0] && !searchTerm ? (
+        <HeroImage
           image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${state.results[0].backdrop_path}`}
-          title={state.results[0].original_title}
+          title={state.results[0].title}
           text={state.results[0].overview}
         />
       ) : null}
-      <SearchBar setSearchTerm={setSearchTerm}/>
-      <Grid header={searchTerm ? 'Search Result' : 'Popular Movies'}>
+      <AddMovieForm addMovie={addMovie} />
+      <SearchBar setSearchTerm={setSearchTerm} />
+      <Grid header={searchTerm ? 'Search Results' : 'Shared Movies'}>
         {state.results.map(movie => (
           <Thumb
             key={movie.id}
@@ -40,18 +47,16 @@ const Home = () => {
             image={
               movie.poster_path
                 ? IMAGE_BASE_URL + POSTER_SIZE + movie.poster_path
-                : NoImage 
+                : NoImage
             }
-            movieID={movie.id}     
+            movieID={movie.id}
           />
         ))}
-
       </Grid>
       {loading && <Spinner />}
-      {state.page < state.total_pages && !loading && (
-        <Button text='Load More' callback={() => setIsLoadingMore(true)}/>
+      {state.hasMore && !loading && (
+        <Button text="Load More" callback={loadMore} />
       )}
-      
     </>
   );
 };

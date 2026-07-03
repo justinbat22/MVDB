@@ -1,80 +1,78 @@
 import { useState, useEffect } from "react";
 //API
 import API from '../API';
-import { isPersistedState } from "../helpers";
+import { db } from '../firebase';
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  startAt,
+  endAt,
+  onSnapshot
+} from 'firebase/firestore';
 
-const initialState = {
-    page: 0,
-    results: [],
-    total_pages: 0,
-    total_results: 0
-};
+const PAGE_SIZE = 20;
 
 export const useHomeFetch = () => {
-  const[searchTerm, setSearchTerm] = useState('');
-  const[state, setState] = useState(initialState);
-  const[loading, setLoading] = useState(false);
-  const[error, setErrror] = useState(false);
-  const[isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [state, setState] = useState({ results: [], hasMore: false });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
-  console.log(searchTerm)
-
-  const fetchMovies = async (page, searchTerm = "") => {
-      try {
-          setErrror(false);
-          setLoading(true);
-
-          const movies = await API.fetchMovies(searchTerm, page);
-          
-
-          setState(prev =>({
-              ...movies,
-              results:
-                page > 1 ? [...prev.results, ...movies.results] : [...movies.results]
-          }));
-
-  } catch(error) {
-      setErrror(true);
-  }
-  setLoading(false);
-  };
-  //initial render
+  // reset how many results we're showing whenever the search changes
   useEffect(() => {
-     fetchMovies(1, );
-
- }, []);
-
-  //search
-  useEffect(() => {
-     if (!searchTerm) {
-        const sessionState = isPersistedState('homeState')
-
-        if (sessionState) {
-            console.log('Grabbing from session Storage');
-            setState(sessionState);
-            return;
-        }
-     }
-     console.log('Grabbing from API');
-
-     setState(initialState);
-     fetchMovies(1, searchTerm);
-
+    setPageSize(PAGE_SIZE);
   }, [searchTerm]);
 
-  //Load More
-  useEffect (() => {
-     if(!isLoadingMore) return;
+  // live-subscribe to the shared Firestore "movies" collection.
+  // onSnapshot means every device gets pushed updates in real time -
+  // no manual refetching needed after an add.
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
 
-     fetchMovies(state.page + 1, searchTerm);
-     setIsLoadingMore(false);
-  },[isLoadingMore, searchTerm, state.page]);
+    const moviesRef = collection(db, 'movies');
+    const term = searchTerm.trim().toLowerCase();
 
-   //Write to session storage
-  useEffect (() => {
-     if (!searchTerm) sessionStorage.setItem('homeState', JSON.stringify(state));
-  },[searchTerm, state]);
+    const q = term
+      ? query(
+          moviesRef,
+          orderBy('title_lower'),
+          startAt(term),
+          endAt(term + '\uf8ff'),
+          limit(pageSize)
+        )
+      : query(moviesRef, orderBy('addedAt', 'desc'), limit(pageSize));
 
-  return { state, loading, error, setSearchTerm, searchTerm, setIsLoadingMore};
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const results = snapshot.docs.map(docSnap => docSnap.data());
+        setState({ results, hasMore: results.length === pageSize });
+        setLoading(false);
+      },
+      () => {
+        setError(true);
+        setLoading(false);
+      }
+    );
 
+    // stop listening when the query changes or the component unmounts
+    return () => unsubscribe();
+  }, [searchTerm, pageSize]);
+
+  const loadMore = () => setPageSize(prev => prev + PAGE_SIZE);
+
+  // add a movie by TMDB id to the shared list
+  const addMovie = async movieId => {
+    const movie = await API.fetchMovie(movieId);
+    if (!movie || movie.success === false) {
+      throw new Error('Movie not found. Double check the TMDB ID.');
+    }
+    await API.addSharedMovie(movie);
+  };
+
+  return { state, loading, error, searchTerm, setSearchTerm, loadMore, addMovie };
 };
