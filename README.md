@@ -31,4 +31,4 @@ Follow these steps to run the project locally.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/neerajsinghchauhan/moviedatabase.git
+   git clone https://github.com/justinbat22/MVDB.git
