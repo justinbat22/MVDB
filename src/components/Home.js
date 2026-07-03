@@ -9,7 +9,6 @@ import Thumb from './Thumb';
 import Spinner from './Spinner';
 import SearchBar from './SearchBar';
 import Button from './Button';
-import AddMovieForm from './AddMovieForm';
 //Hook
 import { useHomeFetch } from '../hooks/useHomeFetch';
 //Image
@@ -22,8 +21,7 @@ const Home = () => {
     error,
     searchTerm,
     setSearchTerm,
-    loadMore,
-    addMovie
+    loadMore
   } = useHomeFetch();
 
   if (error) return <div>Something went wrong ...</div>
@@ -37,7 +35,6 @@ const Home = () => {
           text={state.results[0].overview}
         />
       ) : null}
-      <AddMovieForm addMovie={addMovie} />
       <SearchBar setSearchTerm={setSearchTerm} />
       <Grid header={searchTerm ? 'Search Results' : 'Shared Movies'}>
         {state.results.map(movie => (
