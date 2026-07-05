@@ -65,13 +65,13 @@ export const useHomeFetch = () => {
 
   const loadMore = () => setPageSize(prev => prev + PAGE_SIZE);
 
-  // add a movie by TMDB id to the shared list
-  const addMovie = async movieId => {
+  // add a movie by TMDB id to the shared list, with optional download sets
+  const addMovie = async (movieId, downloadSets = []) => {
     const movie = await API.fetchMovie(movieId);
     if (!movie || movie.success === false) {
       throw new Error('Movie not found. Double check the TMDB ID.');
     }
-    await API.addSharedMovie(movie);
+    await API.addSharedMovie(movie, downloadSets);
   };
 
   return { state, loading, error, searchTerm, setSearchTerm, loadMore, addMovie };
