@@ -15,7 +15,7 @@ const Gallery = ({ downloadSets }) => {
 
   return (
     <Wrapper>
-      <Title>Gallery</Title>
+      <Title>Download Links</Title>
       {downloadSets.map((set, index) => (
         <SetCard key={index}>
           <MetaRow>
