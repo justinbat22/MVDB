@@ -8,7 +8,7 @@ export const Wrapper = styled.div`
 
 export const Title = styled.h2`
   font-size: var(--fontBig);
-  color: var(--white);
+  color: var(--black);
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 2px solid var(--medGrey);
