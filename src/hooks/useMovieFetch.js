@@ -4,13 +4,13 @@ import API from '../API';
 export const useMovieFetch = movieId => {
     const [state, setState] = useState({});
     const [loading, setLoading] = useState(true);
-    const [error, setErrror] = useState(false);
+    const [error, setError] = useState(false);
 
     useEffect (() => {
        const fetchMovie = async () => {
         try {
             setLoading(true);
-            setErrror(false);
+            setError(false);
 
             const movie = await API.fetchMovie(movieId);
             const credits = await API.fetchCredits(movieId);
@@ -25,19 +25,14 @@ export const useMovieFetch = movieId => {
                 directors
             });
 
-            setLoading(false);
-
         } catch (error) {
-            setErrror(true);
+            setError(true);
         }
+        setLoading(false);
        };
-
-       
 
        fetchMovie();
     },[movieId]);
-
-    
 
     return { state, loading, error };
 };

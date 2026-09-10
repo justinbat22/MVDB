@@ -19,7 +19,7 @@ const Thumb = ({ image , movieID, clickable }) => (
 
 Thumb.propTypes = {
     image: PropTypes.string,
-    movieId: PropTypes.number,
+    movieID: PropTypes.number,
     clickable: PropTypes.bool
 }
 

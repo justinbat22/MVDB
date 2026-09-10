@@ -30,7 +30,11 @@ const Home = () => {
     <>
       {state.results[0] && !searchTerm ? (
         <HeroImage
-          image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${state.results[0].backdrop_path}`}
+          image={
+            state.results[0].backdrop_path
+              ? `${IMAGE_BASE_URL}${BACKDROP_SIZE}${state.results[0].backdrop_path}`
+              : NoImage
+          }
           title={state.results[0].title}
           text={state.results[0].overview}
         />
